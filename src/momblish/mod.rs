@@ -1,30 +1,33 @@
 mod corpus;
 use random_choice::random_choice;
-
 pub struct Momblish {
     corpus: corpus::Corpus,
+    choices: Vec<String>,
+    weights: Vec<f64>,
 }
 impl Momblish {
     pub fn init(path: &'static str) -> Momblish {
-        let _corpus = corpus::Corpus::init(path);
-        return Momblish { corpus: _corpus };
+        let corpus = corpus::Corpus::init(path);
+        let choices = corpus.weighted_bigrams.keys().cloned().collect();
+        let weights = corpus.weighted_bigrams.values().copied().collect();
+        Momblish { corpus, choices, weights }
     }
-    pub fn word<'a>(&self, _length: u32) -> String {
-        let mut choices: Vec<&String> = self.corpus.weighted_bigrams.keys().collect::<Vec<_>>();
-        let mut weights: Vec<f64> = self.corpus.weighted_bigrams.values().map(|percent| *percent).collect::<Vec<_>>();
-        let word: &str = random_choice().random_choice_f64(&choices, &weights, 1)[0];
-        let mut owned_word = word.to_owned();
-        for _ in 0.._length - 2 {
-            let len = owned_word.len();
-            let last_bigram = &owned_word[len-2..];
-            choices = self.corpus.occurrences[last_bigram].keys().collect::<Vec<_>>();
-            weights = self.corpus.occurrences[last_bigram].values().map(|percent| *percent).collect::<Vec<_>>();
-            let next_letter: &str = random_choice().random_choice_f64(&choices, &weights, 1)[0];
-            owned_word.push_str(next_letter);
+    pub fn word(&self, length: usize) -> String {
+        let mut rng = random_choice();
+        let mut buf = String::with_capacity(length);
+        let word: &str = rng.random_choice_f64(&self.choices, &self.weights, 1)[0];
+        buf.push_str(word);
+        for _ in 0..length - 2 {
+            let len = buf.len();
+            let last_bigram = &buf[len-2..];
+            let choices: Vec<String> = self.corpus.occurrences[last_bigram].keys().cloned().collect();
+            let weights: Vec<f64> = self.corpus.occurrences[last_bigram].values().copied().collect();
+            let next_letter = rng.random_choice_f64(&choices, &weights, 1)[0];
+            buf.push_str(next_letter);
         }
-        return owned_word;
+        buf
     }
-    pub fn sentence<'a>(&self, count: u32, word_length: u32) -> String {
+    pub fn sentence(&self, count: u32, word_length: usize) -> String {
         let mut out = "".to_string();
         for _ in 0..count {
             out.push_str(self.word(word_length).as_str());
