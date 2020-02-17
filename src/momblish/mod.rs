@@ -20,7 +20,7 @@ impl Momblish {
         for _ in 0..length - 2 {
             let len = buf.len();
             let last_bigram = &buf[len-2..];
-            let choices: Vec<String> = self.corpus.occurrences[last_bigram].keys().cloned().collect();
+            let choices: Vec<&String> = self.corpus.occurrences[last_bigram].keys().collect::<Vec<_>>();
             let weights: Vec<f64> = self.corpus.occurrences[last_bigram].values().copied().collect();
             let next_letter = rng.random_choice_f64(&choices, &weights, 1)[0];
             buf.push_str(next_letter);
