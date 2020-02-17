@@ -1,4 +1,5 @@
 mod momblish;
+mod corpus;
 fn main() {
     
     let momblish = momblish::Momblish::init("./corpus/corpus.json");

@@ -1,5 +1,5 @@
-mod corpus;
 use random_choice::random_choice;
+use crate::corpus;
 pub struct Momblish {
     corpus: corpus::Corpus,
     choices: Vec<String>,
