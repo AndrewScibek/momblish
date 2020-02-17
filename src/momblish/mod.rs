@@ -17,8 +17,8 @@ impl Momblish {
         for _ in 0.._length - 2 {
             let len = owned_word.len();
             let last_bigram = &owned_word[len-2..];
-            choices = self.corpus.occurences[last_bigram].keys().collect::<Vec<_>>();
-            weights = self.corpus.occurences[last_bigram].values().map(|percent| *percent).collect::<Vec<_>>();
+            choices = self.corpus.occurrences[last_bigram].keys().collect::<Vec<_>>();
+            weights = self.corpus.occurrences[last_bigram].values().map(|percent| *percent).collect::<Vec<_>>();
             let next_letter: &str = random_choice().random_choice_f64(&choices, &weights, 1)[0];
             owned_word.push_str(next_letter);
         }

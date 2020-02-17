@@ -5,7 +5,7 @@ use serde::{Serialize, Deserialize};
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Corpus{
     pub weighted_bigrams: HashMap<String, f64>,
-    pub occurences: HashMap<String, HashMap<String, f64>>,
+    pub occurrences: HashMap<String, HashMap<String, f64>>,
 }
 
 impl Corpus {
