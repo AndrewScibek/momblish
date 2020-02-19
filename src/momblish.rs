@@ -1,5 +1,7 @@
-use random_choice::random_choice;
+use random_choice::*;
+use rand::{ThreadRng, thread_rng};
 use crate::corpus;
+use crate::corpus_analyzer;
 pub struct Momblish {
     corpus: corpus::Corpus,
     choices: Vec<String>,
@@ -12,8 +14,9 @@ impl Momblish {
         let weights = corpus.weighted_bigrams.values().copied().collect();
         Momblish { corpus, choices, weights }
     }
-    pub fn word(&self, length: usize) -> String {
-        let mut rng = random_choice();
+    pub fn word(&self, length: usize, random: ThreadRng) -> String {
+        let mut rng = RandomChoice::new(random);
+
         let mut buf = String::with_capacity(length);
         let word: &str = rng.random_choice_f64(&self.choices, &self.weights, 1)[0];
         buf.push_str(word);
@@ -30,7 +33,7 @@ impl Momblish {
     pub fn sentence(&self, count: u32, word_length: usize) -> String {
         let mut out = "".to_string();
         for _ in 0..count {
-            out.push_str(self.word(word_length).as_str());
+            out.push_str(self.word(word_length,thread_rng()).as_str());
             out.push_str(" ");
         }
         return out.to_owned();
