@@ -58,34 +58,28 @@ impl CorpusAnalyzer {
             self.weighted_bigrams[bigram] = count / total;
         }
     }
-    fn init_occurrences<'a>(&self) {
+    fn init_occurrences(&self) {
+        let trigrams: Vec<(String, _)> = self.words.iter()
+           .filter(|w| w.chars().all(char::is_alphanumeric))
+            .flat_map(get_trigrams)
+            .group_by(|x| x[0..2].to_string())
+            .into_iter()
+            .collect();
+
+        let mut occurrences: HashMap<String, HashMap<String, f64>> = HashMap::new();
         
-        let punct_and_newline = HashSet::from_iter(punct.as_bytes().iter().cloned());
-        let mut trigrams: Vec<String> = Vec::new();
-        for word in self.words {
-            if punct_and_newline.is_disjoint(&HashSet::from_iter(word.as_bytes().iter().cloned())) {
-                trigrams.extend(get_trigrams(&word.to_uppercase()));
+        for (bi,trigrams) in trigrams {
+            let weights = occurrences.entry(bi.to_owned()).or_insert(HashMap::new());
+            for tri in trigrams{
+                let last_char = tri.chars().last().unwrap().to_string();
+                weights.entry(last_char).and_modify(|e| { *e += 1.0 }).or_insert(1.0);
             }
         }
-        let collection: HashMap<String, Vec<String>> = trigrams.iter()
-                .group_by(|x| &x[0..2]).into_iter()
-                .map(|(ge0, group)| (ge0, group.cloned().collect()))
-                .collect();
-        for (bigram, trigram) in  collection{
-            let last_char = &trigram[0].chars().last().unwrap().to_string();
-            if self.occurrences[&bigram]
-                .iter()
-                .any(|(x,&_)| x == last_char)
-            {
-                self.occurrences[&bigram][last_char] += 1.0;
-            } else {
-                self.occurrences[&bigram][last_char] = 1.0;
-            }
-        }
-        for (bigram, last_letters) in self.occurrences.iter() {
-            let total = last_letters.values().copied().sum();
+
+        for (bigram, last_letters) in occurrences.iter() {
+            let total: f64 = last_letters.values().copied().sum();
             for last_letter in last_letters.keys() {
-                self.occurrences[bigram][last_letter] /= total;
+                occurrences[bigram][last_letter] /= total;
             }
         }
     }
